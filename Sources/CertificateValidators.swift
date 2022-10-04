@@ -8,7 +8,6 @@ public class UnsecureCertificateValidator: CertificateValidatorProtocol {
     public init(hostname: String, port: UInt) {
         self.hostname = hostname
         self.port = port
-
         self.trustedCertificates = []
     }
 
@@ -31,9 +30,6 @@ public class UnsecureCertificateValidator: CertificateValidatorProtocol {
 
 }
 
-#if os(Linux)
-#else
-
 public class TrustRootOnlyCertificateValidator: CertificateValidatorProtocol {
 
     public init(hostname: String, port: UInt) {
@@ -45,17 +41,64 @@ public class TrustRootOnlyCertificateValidator: CertificateValidatorProtocol {
     public let hostname: String
 
     public let port: UInt
-
+  
+    #if os(Linux)
+    public let trustedCertificates: [NIOSSLCertificateSource]
+    #else
     public let trustedCertificates: [SecCertificate]
+    #endif
 
     public func shouldTrustCertificate(withSHA1: String) -> Bool {
         return false
     }
 
-    public func didTrustCertificate(withSHA1: String) {
+    public func didTrustCertificate(withSHA1: String) { }
+}
+
+#if os(Linux)
+
+public class TrustSpecificOrRootCertificateValidator: CertificateValidatorProtocol {
+
+    public init(hostname: String, port: UInt, trustedCertificate: NIOSSLCertificateSource) {
+        self.hostname = hostname
+        self.port = port
+        self.trustedCertificates = [trustedCertificate]
     }
 
+    public init(hostname: String, port: UInt, trustedCertificates: [NIOSSLCertificateSource]) {
+        self.hostname = hostname
+        self.port = port
+        self.trustedCertificates = trustedCertificates
+    }
+
+    public init(hostname: String, port: UInt, trustedCertificateAtPath path: String) {
+        self.hostname = hostname
+        self.port = port
+
+        let data: Data = try! Data(contentsOf: URL(fileURLWithPath: path))
+        let cert = SecCertificateCreateWithData(nil, data as CFData)
+        if let cert = cert {
+            self.trustedCertificates = [cert]
+        } else {
+            print("Bolt: Path '\(path)' did not contain a valid certificate, continuing without")
+            self.trustedCertificates = []
+        }
+    }
+
+    public let hostname: String
+
+    public let port: UInt
+
+    public let trustedCertificates: [NIOSSLCertificateSource]
+
+    public func shouldTrustCertificate(withSHA1: String) -> Bool {
+        return false
+    }
+
+    public func didTrustCertificate(withSHA1: String) { }
 }
+
+#else
 
 public class TrustSpecificOrRootCertificateValidator: CertificateValidatorProtocol {
 
