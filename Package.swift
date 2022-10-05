@@ -1,4 +1,4 @@
-// swift-tools-version:5.2
+// swift-tools-version:5.5
 
 import PackageDescription
 
@@ -20,7 +20,7 @@ let package = Package(
     name: "Bolt",
     
     platforms: [
-        .macOS(.v10_15), 
+        .macOS(.v12),
         .iOS(.v13),
         .tvOS(.v13),
     ],
