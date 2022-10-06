@@ -74,15 +74,17 @@ public class TrustSpecificOrRootCertificateValidator: CertificateValidatorProtoc
     public init(hostname: String, port: UInt, trustedCertificateAtPath path: String) {
         self.hostname = hostname
         self.port = port
-
-        let data: Data = try! Data(contentsOf: URL(fileURLWithPath: path))
-        let cert = SecCertificateCreateWithData(nil, data as CFData)
-        if let cert = cert {
-            self.trustedCertificates = [cert]
-        } else {
-            print("Bolt: Path '\(path)' did not contain a valid certificate, continuing without")
-            self.trustedCertificates = []
-        }
+        self.trustedCertificates = []
+      
+      //TODO: Find a working solution for Linux.
+//        let data: Data = try! Data(contentsOf: URL(fileURLWithPath: path))
+//        let cert = SecCertificateCreateWithData(nil, data as CFData)
+//        if let cert = cert {
+//            self.trustedCertificates = [cert]
+//        } else {
+//            print("Bolt: Path '\(path)' did not contain a valid certificate, continuing without")
+//            self.trustedCertificates = []
+//        }
     }
 
     public let hostname: String
